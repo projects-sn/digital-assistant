@@ -2,8 +2,6 @@ import os, json, time, uuid
 from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass, field
 
-from fastapi import FastAPI
-from pydantic import BaseModel, Field
 
 # LangChain
 from langchain_openai import ChatOpenAI
@@ -220,36 +218,9 @@ def chat(session_id: str, user_query: str) -> ChatResult:
     )
 
 # =========================
-# 5) FastAPI
-# =========================
-app = FastAPI(title="Russia-Analogs-Search Bot", version="1.0.0")
-
-class ChatRequest(BaseModel):
-    session_id: Optional[str] = Field(default=None, description="Уникальный ID сессии (если нет — будет создан)")
-    user_message: str
-
-class ChatResponse(BaseModel):
-    session_id: str
-    rewritten_query: str
-    answer: str
-    sources: List[Dict[str, str]]
-
-@app.post("/chat", response_model=ChatResponse)
-def chat_endpoint(req: ChatRequest):
-    sid = req.session_id or str(uuid.uuid4())
-    res = chat(sid, req.user_message)
-    return ChatResponse(
-        session_id=res.session_id,
-        rewritten_query=res.rewritten,
-        answer=res.answer_text,
-        sources=res.sources
-    )
-
-# =========================
-# 6) Локальный запуск
+# 5) Локальный запуск (CLI)
 # =========================
 if __name__ == "__main__":
-    # Пример CLI-диалога
     sid = str(uuid.uuid4())
     print(f"Session: {sid}")
     while True:
