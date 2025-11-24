@@ -2,8 +2,7 @@
 import os
 import re
 import uuid
-from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import json
 from typing import Optional, Dict, Any, List
 
@@ -136,16 +135,6 @@ strategizer_chain = RunnableWithMessageHistory(
 
 
 
-# FastAPI app
-
-app = FastAPI(title="Centra Multi-Agent Chat", version="1.0.0")
-
-
-class ChatRequest(BaseModel):
-    session_id: Optional[str] = Field(default=None)
-    user_message: str
-
-
 class StrategyItem(BaseModel):
     name: str
     description: str
@@ -209,19 +198,22 @@ def run_agents(session_id: str, user_message: str) -> ChatResponse:
     )
 
 
-# POST /chat
-
-@app.post("/chat", response_model=ChatResponse)
-def chat_endpoint(req: ChatRequest):
-    sid = req.session_id or str(uuid.uuid4())
-    result = run_agents(sid, req.user_message)
-    return result
-
-
-
-# Локальный запуск CLI
-
+# Локальный запуск CLI (для ручного тестирования)
 if __name__ == "__main__":
-    import uvicorn
-    print("Запуск Centra Multi-Agent Chat — http://127.0.0.1:8000/docs")
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    session = str(uuid.uuid4())
+    print("Старт локального CLI. Введите вопрос (пустая строка для выхода).")
+    while True:
+        try:
+            user_text = input("Вы: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            break
+        if not user_text:
+            break
+        response = run_agents(session, user_text)
+        print("\n--- Итоговый вывод ---")
+        print(response.combined_summary or "<нет данных>")
+        if response.strategies:
+            print("\n--- Стратегии ---")
+            for strat in response.strategies:
+                print(f"[#{strat.rank}] {strat.name}: {strat.description}")
+        print("\n")
