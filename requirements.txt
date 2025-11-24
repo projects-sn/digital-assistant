@@ -1,0 +1,14 @@
+langchain
+langchain-community
+langchain-openai
+openai
+docarray
+streamlit
+pandas
+rank_bm25
+Pydantic
+langchain_core
+uvicorn
+langchain-text-splitters
+python-docx
+python-pptx
